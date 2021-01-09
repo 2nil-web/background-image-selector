@@ -155,7 +155,7 @@ function BgThumbAdd (regKey, pidx) {
     '<img '+optMouse+' id="img_bg'+idx+'" style="max-width:'+ img_width +'px;max-height:'+img_height+'px; width:auto;height:auto;" src="" ondragstart="return false;">'+
       '<center>'+
         im_buts+
-        svg_button('rem_bg'+idx, "position:relative; top: -35px;", "", "Dismiss this image (\''+bgPath.basename()+'\').", del_svg)+
+        svg_button('rem_bg'+idx, "position:relative; top: -35px;", "", 'Dismiss this image (\''+bgPath.basename()+'\').', del_svg)+
       '</center>'+
     '</img></center><br>'+
 '</div>';
