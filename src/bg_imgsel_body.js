@@ -53,15 +53,14 @@ function closeCnfDiv() {
 function okCnfDiv() {
   if (rejFld.value !== '') rejFolder=rejFld.value;
 
-  if (thW.value !== '' && thH.value !== '' && 
-     (thW.value !== img_width || thH.value !== img_height || thumbBorder !== thuBord.checked || isDarkMode !== darkMode.checked)) {
-    img_width=thW.value;
-    img_height=thH.value;
-    thumbBorder=thuBord.checked;
-    isDarkMode=darkMode.checked;
-    setDarkMode(isDarkMode);
-    location.reload();
-  }
+  img_width=thW.value;
+  img_height=thH.value;
+  thumbBorder=thuBord.checked;
+  isDarkMode=darkMode.checked;
+  setDarkMode(isDarkMode);
+  isButsOnOver=butsOnOver.checked;
+  setButsOnOver(isButsOnOver);
+  location.reload();
 
   closeCnfDiv();
 }
@@ -76,6 +75,8 @@ function showConfig () {
   thH.value=img_height;
   thuBord.checked=thumbBorder;
   darkMode.checked=isDarkMode;
+  butsOnOver.checked=isButsOnOver;
+  butsOnClck.checked=!isButsOnOver;
   document.onkeyup=document.body.onkeyup=onKeyupDiv;
   window.addEventListener("resize", cnfDivNoResize);
   cnfDiv.style.display='block';
@@ -84,6 +85,7 @@ function showConfig () {
 
 window.onload=function () {
   setDarkMode(isDarkMode);
+  setButsOnOver(isButsOnOver);
   document.onkeyup=document.body.onkeyup=onKeyUp;
   // Rafraichissement des images au dizième de seconde
   setInterval(BgThumbList, 100);
@@ -103,5 +105,6 @@ window.onbeforeunload = function (e) {
   writeIni(INI_FILE, 'THUMBNAIL', "RejectFolder", rejFolder);
   writeIni(INI_FILE, 'THUMBNAIL', "Border", thumbBorder);
   writeIni(INI_FILE, 'APP', "DarkMode", isDarkMode);
+  writeIni(INI_FILE, 'APP', "ButtonsOnOver", isButsOnOver);
 };
 

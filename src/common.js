@@ -1,8 +1,8 @@
 
-if (!isJSOnly()) {
-function isJSOnly() {
+if (typeof isJSOnly === 'undefined') {
+var isJSOnly=function () {
   return typeof document === 'undefined';
-}
+};
 }
 
 // Polyfills
@@ -259,6 +259,19 @@ var darkBGCol='#121212';
 var darkButBGCol='#222266';
 var darkTxtBGCol='#662222';
 var darkFGCol='#eeee77';
+
+function setButsOnOver (set) {
+  if (set) {
+    document.body.addEventListener("mouseover", showButs);
+    document.body.addEventListener("mouseout", hideButs);
+    document.body.removeEventListener("click", toggleButs);
+  } else {
+    document.body.removeEventListener("mouseover", showButs);
+    document.body.removeEventListener("mouseout", hideButs);
+    document.body.addEventListener("click", toggleButs);
+
+  }
+}
 
 function setDarkMode (set) {
   if (set) {

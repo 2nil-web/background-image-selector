@@ -14,6 +14,7 @@ var lastNThumb=-1;
 var nThumb=1;
 var thumbBorder;
 var isDarkMode=false;
+var isButsOnOver=true;
 
 winX=readIni(INI_FILE, 'POSITION', "X", 50);
 winY=readIni(INI_FILE, 'POSITION', "Y", 50);
@@ -23,6 +24,7 @@ img_height=readIni(INI_FILE, 'THUMBNAIL', "Height", 128);
 rejFolder=readIni(INI_FILE, 'THUMBNAIL', "RejectFolder", wsh().ExpandEnvironmentStrings("%USERPROFILE%")+'\\Pictures\\RES');
 thumbBorder=(readIni(INI_FILE, 'THUMBNAIL', "Border", true) === 'true');
 isDarkMode=(readIni(INI_FILE, 'APP', "DarkMode", true) === 'true');
+isButsOnOver=(readIni(INI_FILE, 'APP', "ButtonsOnOver", true) === 'true');
 
 function setWindowPos (start) {
   var padw=3.75*nThumb+45.25;
@@ -87,6 +89,16 @@ function hideButs () {
   for (var i=0; i <= nThumb+10; i++) {
     displayElement('rem_bg'+i, false);
   }
+}
+
+var butsOn=false;
+function toggleButs () {
+  if (butsOn) {
+    hideButs();
+  } else {
+    showButs();
+  }
+  butsOn=!butsOn;
 }
 
 function BgFileDelete (regKey, imgn, remn) {

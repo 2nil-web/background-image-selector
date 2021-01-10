@@ -17,7 +17,7 @@
          icon="bg_imgsel.ico"
          />
    </head>
-   <body onmouseover="showButs();" onmouseout="hideButs();">
+   <body>
       <div id='cnfDiv' >
          <fieldset>
             <legend> Dimensions of the thumbnail display frame</legend>
@@ -38,6 +38,23 @@
             <input type="checkbox" id="darkMode">
             </label>
          </center>
+
+         <fieldset>
+            <legend>How to make buttons appear</legend>
+            <center>
+            <label for="butsOnOver">
+              <input type="radio" id="butsOnOver" name="clickOrOver" checked >
+              On mouse over
+            </label>
+
+            <label for="butsOnClck" style="margin-left:30px;">
+              On mouse click
+              <input type="radio" id="butsOnClck" name="clickOrOver" ></input>
+            </label>
+
+            </center>
+         </fieldset>
+
          <fieldset>
             <legend> Folder for rejected pictures</legend>
             <input type="text" id='rejFld' style="width: 300px;">
