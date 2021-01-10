@@ -366,11 +366,112 @@ TristateTrue=-1, // Ouvre le fichier comme de l'Unicode.
 TristateFalse=0;
 
 // Ini file management
+function writeIni(file, section, key, value) {
+  if (typeof localStorage === 'undefined') {
+    var ini;
+    if (fso().FileExists(file.trim())) {
+      ini=fso().OpenTextFile(file);
+      var fileNew=file+fso().GetTempName().replace('.tmp','')+'.ini';
+      var iniNew=fso().CreateTextFile(fileNew);
+      var sectExist=false;
+      var inSect=false;
+      var keyExist;
+      if (readIni(file, section, key) !== "") keyExist=true;
+      else keyExist=false;
+      var written=false;
+
+      while (!ini.AtEndOfStream) {
+        var line=ini.readline().trim();
+
+        if (!written) {
+          if (line.toLowerCase() === '['+section.toLowerCase()+']') {
+            sectExist=true;
+            inSect=true;
+          } else {
+            if (line.indexOf('[') === 0) inSect=false;
+          }
+        }
+
+        if (inSect) {
+          if (keyExist) {
+            var pos=line.substring(1).indexOf('=');
+
+            if (pos !== -1) {
+              var leftVal=line.substring(0, pos+1).trim();
+              if (leftVal.toLowerCase() === key.toLowerCase()) {
+                if (value !== "<DELETE_THIS_VALUE>") iniNew.writeline(key+'='+value);
+                written=true;
+                inSect=false;
+              }
+            }
+            if (!written) iniNew.writeline(line);
+          } else {
+            iniNew.writeline(line);
+            if (value !== "<DELETE_THIS_VALUE>") iniNew.writeline(key+'='+value);
+            written=true;
+            inSect=false;
+          }
+        } else iniNew.writeline(line);
+      }
+
+      if (!sectExist) {
+        if (fso().GetFile(file).Size > 0) iniNew.writeline();
+        iniNew.writeline('['+section+']');
+        if (value !==  "<DELETE_THIS_VALUE>") iniNew.writeline(key+'='+value);
+      }
+
+      ini.close();
+      iniNew.close();
+      fso().DeleteFile(file, true);
+      fso().MoveFile(fileNew, file);
+    } else {
+      ini=fso().CreateTextFile(file.trim());
+      ini.writeline('['+section+']');
+      ini.writeline(key+'='+value);
+      ini.close();
+    }
+  } else {
+    var k=file+'.'+section+'.'+key;
+    localStorage.setItem(k, value);
+  }
+}
+
+
+function writeIniBool(file, section, key, value) {
+  var val='false';
+
+  switch(typeof value) {
+    case 'boolean':
+      if (value) val='true';
+      else val='false';
+      break;
+    case 'string':
+      if (value === 'true' || value === 'yes' || value === 'on') val='true';
+      else val='false';
+      break;
+    case 'number':
+      if (value === 0) val='false';
+      else val='true';
+      break;
+    default:
+      val='false';
+  }
+
+  writeIni(file, section, key, val);
+}
+
+function delIniKey(file, section, key) {
+  if (typeof localStorage === "undefined") {
+    writeIni(file, section, key,  "<DELETE_THIS_VALUE>");
+  } else {
+    var k=file+'.'+section+'.'+key;
+    localStorage.removeItem(k);
+  }
+}
+
 // Retourne la valeur de la clef dans la section du fichier ini ou ""
 function readIni(file, section, key, defVal) {
-  var val;
-  if (typeof defVal !== 'undefined') val=defVal;
-  else val="";
+  var val="";
 
   if (typeof localStorage === 'undefined') {
     if (fso().FileExists(file.trim())) {
@@ -410,87 +511,49 @@ function readIni(file, section, key, defVal) {
     else localStorage.setItem(k, val);
   }
 
+  // Si val n'est pas défini et qu'une valeur par défaut est définie alors on prend la valeur par défaut
+  if (val === "" && typeof defVal !== 'undefined') {
+    val=defVal;
+    // On sauvegarde préventivement la valeur par défaut
+    writeIni(file, section, key, defVal);
+  }
+
   return wsh().ExpandEnvironmentStrings(val);
 }
 
-function writeIni(file, section, key, value) {
-  if (typeof localStorage === 'undefined') {
-    var ini;
-    if (fso().FileExists(file.trim())) {
-      ini=fso().OpenTextFile(file);
-      var fileNew='fmgc_'+fso().GetTempName().replace('.tmp','')+'.ini';
-      var iniNew=fso().CreateTextFile(fileNew);
-      var sectExist=false;
-      var inSect=false;
-      var keyExist;
-      if (readIni(file, section, key) !== "") keyExist=true;
-      else keyExist=false;
-      var written=false;
+function readIniBool(file, section, key, defValue) {
+  var ret, defVal='false';
 
-      while (!ini.AtEndOfStream) {
-        var line=ini.readline().trim();
+  switch (typeof defValue) {
+    case 'boolean':
+        defVal=defValue?'true':'false';
+        break;
+    case 'number':
+      defVal=(defValue === 0)?'false':'true';
+      break;
+    case 'string':
+      defVal=(defValue === 'true' || defValue === 'yes' || defValue === 'on')?'true':'false';
+      break;
+    default:
+      defVal='false';
+  }
 
-        if (!written) {
-          if (line.toLowerCase() === '['+section.toLowerCase()+']') {
-            sectExist=true;
-            inSect=true;
-          } else {
-            if (line.indexOf('[') === 0) inSect=false;
-          }
-        }
+  ret=readIni(file, section, key, defVal);
 
-        if (inSect) {
-          if (keyExist) {
-            var pos=line.substring(1).indexOf('=');
-
-            if (pos !== -1) {
-              var leftVal=line.substring(0, pos+1).trim();
-              if (leftVal.toLowerCase() === key.toLowerCase()) {
-                if (value.toString().trim() !== "<DELETE_THIS_VALUE>") iniNew.writeline(key+'='+value);
-                written=true;
-                inSect=false;
-              }
-            }
-            if (!written) iniNew.writeline(line);
-          } else {
-            iniNew.writeline(line);
-            if (value !== "<DELETE_THIS_VALUE>") iniNew.writeline(key+'='+value);
-            written=true;
-            inSect=false;
-          }
-        } else iniNew.writeline(line);
-      }
-
-      if (!sectExist) {
-        if (fso().GetFile(file).Size > 0) iniNew.writeline();
-        iniNew.writeline('['+section+']');
-        if (value !==  "<DELETE_THIS_VALUE>") iniNew.writeline(key+'='+value);
-      }
-
-      ini.close();
-      iniNew.close();
-      fso().DeleteFile(file, true);
-      fso().MoveFile(fileNew, file);
-    } else {
-      ini=fso().CreateTextFile(file.trim());
-      ini.writeline('['+section+']');
-      ini.writeline(key+'='+value);
-      ini.close();
-    }
-  } else {
-    var k=file+'.'+section+'.'+key;
-    localStorage.setItem(k, value);
+  switch (typeof ret) {
+    case 'boolean':
+      return ret;
+    case 'number':
+      return (ret !== 0);
+    case 'string':
+      ret=ret.toLowerCase();
+      if (ret === 'true' || ret === 'yes' || ret === 'on') return true;
+      return false;
+    default:
+      return false;
   }
 }
 
-function delIniKey(file, section, key) {
-  if (typeof localStorage === "undefined") {
-    writeIni(file, section, key,  "<DELETE_THIS_VALUE>");
-  } else {
-    var k=file+'.'+section+'.'+key;
-    localStorage.removeItem(k);
-  }
-}
 
 function writeLog(txt) {
   if (isJSOnly() || isHTA()) {

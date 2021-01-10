@@ -53,14 +53,18 @@ function closeCnfDiv() {
 function okCnfDiv() {
   if (rejFld.value !== '') rejFolder=rejFld.value;
 
-  img_width=thW.value;
-  img_height=thH.value;
-  thumbBorder=thuBord.checked;
-  isDarkMode=darkMode.checked;
-  setDarkMode(isDarkMode);
   isButsOnOver=butsOnOver.checked;
   setButsOnOver(isButsOnOver);
-  location.reload();
+
+  if (thW.value !== '' && thH.value !== '' && (thW.value !== img_width || thH.value !== img_height || thumbBorder !== thuBord.checked || isDarkMode !== darkMode.checked)) {
+    img_width=thW.value;
+    img_height=thH.value;
+    thumbBorder=thuBord.checked;
+    isDarkMode=darkMode.checked;
+    setDarkMode(isDarkMode);
+    saveConfig();
+    location.reload();
+  }
 
   closeCnfDiv();
 }
@@ -92,19 +96,23 @@ window.onload=function () {
   setTimeout(getAllNodes, 200);
 };
 
-window.onbeforeunload = function (e) {
-  winX=getWindowX(); 
-  if (winX < 0) winX=50;
-  winY=getWindowY();
-  if (winY < 0) winY=50;
+function saveConfig () {
   writeIni(INI_FILE, 'POSITION', "X", winX);
   writeIni(INI_FILE, 'POSITION', "Y", winY);
   writeIni(INI_FILE, 'THUMBNAIL', "Number", nThumb);
   writeIni(INI_FILE, 'THUMBNAIL', "Width", img_width);
   writeIni(INI_FILE, 'THUMBNAIL', "Height", img_height);
   writeIni(INI_FILE, 'THUMBNAIL', "RejectFolder", rejFolder);
-  writeIni(INI_FILE, 'THUMBNAIL', "Border", thumbBorder);
-  writeIni(INI_FILE, 'APP', "DarkMode", isDarkMode);
-  writeIni(INI_FILE, 'APP', "ButtonsOnOver", isButsOnOver);
+  writeIniBool(INI_FILE, 'THUMBNAIL', "Border", thumbBorder);
+  writeIniBool(INI_FILE, 'APP', "DarkMode", isDarkMode);
+  writeIniBool(INI_FILE, 'APP', "ButtonsOnOver", isButsOnOver);
+}  
+
+window.onbeforeunload = function (e) {
+  winX=getWindowX(); 
+  if (winX < 0) winX=50;
+  winY=getWindowY();
+  if (winY < 0) winY=50;
+  saveConfig();
 };
 

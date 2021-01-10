@@ -22,9 +22,9 @@ nThumb=readIni(INI_FILE, 'THUMBNAIL', "Number", 1);
 img_width=readIni(INI_FILE, 'THUMBNAIL', "Width", 232);
 img_height=readIni(INI_FILE, 'THUMBNAIL', "Height", 128);
 rejFolder=readIni(INI_FILE, 'THUMBNAIL', "RejectFolder", wsh().ExpandEnvironmentStrings("%USERPROFILE%")+'\\Pictures\\RES');
-thumbBorder=(readIni(INI_FILE, 'THUMBNAIL', "Border", true) === 'true');
-isDarkMode=(readIni(INI_FILE, 'APP', "DarkMode", true) === 'true');
-isButsOnOver=(readIni(INI_FILE, 'APP', "ButtonsOnOver", true) === 'true');
+thumbBorder=readIniBool(INI_FILE, 'THUMBNAIL', "Border", true);
+isDarkMode=readIniBool(INI_FILE, 'APP', "DarkMode", false);
+isButsOnOver=readIniBool(INI_FILE, 'APP', "ButtonsOnOver", true);
 
 function setWindowPos (start) {
   var padw=3.75*nThumb+45.25;
@@ -241,7 +241,7 @@ function BgThumbList () {
   }
 
   if (lastNThumb !== nThumb) {
-//    setWindowPos();
+    setWindowPos();
     lastNThumb=nThumb;
   }
 }
