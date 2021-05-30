@@ -1,6 +1,6 @@
 
 
-MINIFY=java -jar C:/Users/denis.lalanne/home/bin/yuicompressor-2.4.8.jar
+MINIFY=java -jar "${USERPROFILE}/home/bin/yuicompressor-2.4.8.jar"
 JSMINIFY=terser
 #HTMINIFY=minify --type html
 HTMINIFY=html-minifier --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true
