@@ -1,5 +1,4 @@
 
-
 JAVA='/c/Program Files/Java/jdk-14.0.2/bin/java'
 MINIFY=${JAVA} -jar C:/Users/denis.lalanne/home/bin/yuicompressor-2.4.8.jar
 JSMINIFY=terser
