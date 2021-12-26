@@ -10,6 +10,7 @@ function setRejFolder () {
 var zoom_factor=0.4;
 
 function zoom (factor) {
+  try {
   if (factor === 0) {
     img_width=228;
     img_height=128;
@@ -21,6 +22,7 @@ function zoom (factor) {
   }
 
   location.reload();
+  } catch (err) {}
 }
 
 function onKeyupDiv(evt) {
@@ -91,8 +93,8 @@ window.onload=function () {
   setDarkMode(isDarkMode);
   setButsOnOver(isButsOnOver);
   document.onkeyup=document.body.onkeyup=onKeyUp;
-  // Rafraichissement des images au dizième de seconde
-  setInterval(BgThumbList, 100);
+  // Rafraichissement des images au cinquième de seconde
+  setInterval(BgThumbList, 200);
   setTimeout(getAllNodes, 200);
 };
 

@@ -29,7 +29,7 @@ isButsOnOver=readIniBool(INI_FILE, 'APP', "ButtonsOnOver", true);
 function setWindowPos (start) {
   var padw=5*nThumb+45.25;
   var ww=nThumb*img_width+padw;
-  if (ww > screen.width) ww=screen.width;
+  if (typeof screen !== "undefined" && ww > screen.width) ww=screen.width;
   var wh=60+Number(img_height);
   if (typeof start !== 'undefined' && start && isHTA()) self.moveTo(winX, winY);
   if (isHTA()) self.resizeTo(ww, wh);  
@@ -44,6 +44,63 @@ function onKeyUp(evt) {
 }
 
 function noOnKeyUp(evt) {
+}
+
+function mkTemp () {
+  var tn;
+  do {
+    tn=fso().BuildPath(fso().GetSpecialFolder(2), fso().GetTempName());
+  } while (fso().FileExists(tn));
+
+  return tn;
+}
+
+function get_mon_info() {
+  var query='HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
+
+  regfile=mkTemp();
+  wsh().Run('cmd /C reg query "'+query+'" /s >'+regfile, 0, true);
+
+  var s="";
+  try {
+    rm=fso().OpenTextFile(regfile, 1, true);
+    s=rm.ReadAll();
+    rm.close();
+  } catch (err) { }
+  if (fso().FileExists(regfile)) fso().DeleteFile(regfile);
+
+  var ak=s.split("\n");
+  var vdesk, vrelx, vrely, vxres, vyres;
+  var mons=[];
+
+  for (var i = 0; i < ak.length; i++) {
+    var k=ak[i].trim().replace(/\s\s+/g, ' ').split(' ');
+
+    switch (k[0]) {
+      case "Attach.ToDesktop":
+        vdesk=parseInt(k[2], 16);
+        break;
+      case "DefaultSettings.XResolution":
+        vxres=parseInt(k[2], 16);
+        break;
+      case "DefaultSettings.YResolution":
+        vyres=parseInt(k[2], 16);
+        break;
+      case "Attach.RelativeX":
+        rx=parseInt(k[2], 16);
+        if (rx > 4294963200) rx-=4294963200;
+        vrelx=rx;
+        break;
+      case "Attach.RelativeY":
+        ry=parseInt(k[2], 16);
+        if (ry > 4294963200) ry-=4294963200;
+        vrely=ry;
+        mons.push({desk: vdesk, xres: vxres, yres: vyres, relx: vrelx, rely: vrely});
+        break;
+    }
+  }
+
+  return mons;
 }
 
 function BgRegExtract(regKey) {
@@ -140,12 +197,18 @@ var im_buts=svg_button("cnfBut",  "left:  20px", "showConfig()",       "Configur
             svg_button("znoBut",  "left:  80px", "zoom(0)",            "Default size",  zno_svg)+
             svg_button("zoutBut", "left: 110px", "zoom(-zoom_factor)", "Zoom out",      zout_svg);
 
+
+var monits;
+var curr_nmon=0;
+
 var update_done=false;
 // Retourne 1 bgPath existe, 0 sinon
 function BgThumbAdd (regKey, pidx) {
   var bgPath=BgRegExtract(regKey);
   if (bgPath === '') return 0;
 //  if (!fso().FileExists(bgPath)) return 0;
+
+  if (typeof document === 'undefined') return 0;
 
   if (typeof pidx === 'undefined') idx=0;
   else idx=pidx;
@@ -162,11 +225,11 @@ function BgThumbAdd (regKey, pidx) {
       else border=' border: 1px solid;';
 
       document.body.innerHTML+=
-'<div style="margin-left: 2px;'+border+' float: left; padding: 1px; width: '+divW+'px; height: '+img_height+'px; '+optDiv+'">'+
+im_buts+
+'<div id="mon'+curr_nmon+'" style="margin-left: 2px;'+border+' float: left; padding: 1px; width: '+divW+'px; height: '+img_height+'px; '+optDiv+'">'+
   '<center>'+
     '<img '+optMouse+' id="img_bg'+idx+'" style="max-width:'+ img_width +'px;max-height:'+img_height+'px; width:auto;height:auto;" src="" ondragstart="return false;">'+
       '<center>'+
-        im_buts+
         svg_button('rem_bg'+idx, "position:relative; top: -35px;", "", 'Dismiss this image (\''+bgPath.basename()+'\').', del_svg)+
       '</center>'+
     '</img></center><br>'+
@@ -175,6 +238,8 @@ function BgThumbAdd (regKey, pidx) {
     }
 
     imgn=document.getElementById("img_bg"+idx);
+    imgn.setAttribute('data-monindex', curr_nmon);
+    curr_nmon++;
   }
 
   if (typeof imgn !== 'undefined' && imgn !== null && 
@@ -188,8 +253,18 @@ function BgThumbAdd (regKey, pidx) {
     imgn.style.display = 'block';
 //    remn.style.display = 'none';
 
+    var cm=imgn.getAttribute('data-monindex');
+    var par=document.getElementById("mon"+cm);
+
+    if (monits[cm].desk === 0) {
+      par.style.display='none';
+      return 0;
+    }
+
+    par.style.display='';
     return 1;
   }
+
   return 0;
 }
 
@@ -220,6 +295,7 @@ var winVers=getWinVers();
 var currentWw=0, currentWh=0;
 function BgThumbList () {
   nThumb=0;
+  monits=get_mon_info();
 
   switch (winVers) {
     case 7: // For Win7
@@ -232,7 +308,7 @@ function BgThumbList () {
       try { nKey=wsh().RegRead("HKEY_CURRENT_USER\\Control Panel\\Desktop\\TranscodedImageCount"); } catch (err) { nKey=1; }
 
       nThumb=0;
-      for (var i=0; i <= nKey+10; i++) {
+      for (var i=0; i < nKey+10; i++) {
         nThumb+=BgThumbAdd("HKEY_CURRENT_USER\\Control Panel\\Desktop\\TranscodedImageCache_"+i.toString().padStart(3), i);
       }
 
