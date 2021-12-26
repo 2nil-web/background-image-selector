@@ -1,3 +1,6 @@
+
+window.resizeTo(800, 200);
+
 // === ActiveX ===
 var activeX = [];
 function callActiveX(AXName) {
@@ -9,56 +12,80 @@ function fso() { return callActiveX('Scripting.FileSystemObject'); }
 function wsh() { return callActiveX('WScript.Shell'); }
 function sha() { return callActiveX('Shell.Application'); }
 
-var query='HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
-var re=new RegExp('.*{.*}');
+function mkTemp () {
+  var tn;
+  do {
+    tn=fso().BuildPath(fso().GetSpecialFolder(2), fso().GetTempName());
+  } while (fso().FileExists(tn));
 
-var objExec = wsh().Exec('reg query "'+query+'" /s');
-var s=objExec.StdOut.ReadAll();
-var ak=s.split("\n");
-var msg="";
-var k=[], idx=[], desk=[], relx=[], rely=[], xres=[], yres=[];
-for (var i = 0; i < ak.length; ++i) {
-  kl=ak[i].trim();
-
-  if (kl.substring(0, query.length) === query) {
-    id=kl.substring(query.length).replace(/.*{.*}/, '');
-//    mondisp.innerHTML+='[['+id+']]<br>';
-
-    if (id !== "") idx.push(1+parseInt(id.slice(-4), 10));
-  } else {
-  k=kl.replace(/\s\s+/g, ' ').split(' ');
-
-  switch (k[0]) {
-    case "Attach.ToDesktop":
-      desk.push(parseInt(k[2], 16));
-      break;
-    case "Attach.RelativeX":
-      rx=parseInt(k[2], 16);
-      if (rx > 4294963200) rx-=4294963200;
-      relx.push(rx);
-      break;
-    case "Attach.RelativeY":
-      ry=parseInt(k[2], 16);
-      if (ry > 4294963200) ry-=4294963200;
-      rely.push(ry);
-      break;
-    case "DefaultSettings.XResolution":
-      xres.push(parseInt(k[2], 16));
-      break;
-    case "DefaultSettings.YResolution":
-      yres.push(parseInt(k[2], 16));
-      break;
-  }
-  }
+  return tn;
 }
 
-if (desk.length > 1) mondisp.innerHTML+="There are "+desk.length+" monitors<br>";
-else mondisp.innerHTML+="There is one monitor<br>";
+function get_mon_info() {
+  var query='HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
 
-for (i=0; i < desk.length; i++) {
-  mondisp.innerHTML+="Monitor "+idx[i]+ " has a resolution of "+xres[i]+"X"+yres[i]+" pixels with relative X and Y attachment ("+relx[i]+", "+rely[i]+")";
+  regfile=mkTemp();
+  wsh().Run('cmd /C reg query "'+query+'" /s >'+regfile, 0, true);
 
-  if (desk[i] === 0) mondisp.innerHTML+=" but is not active";
-  mondisp.innerHTML+=".<br>";
+  var s="";
+  try {
+    rm=fso().OpenTextFile(regfile, 1, true);
+    s=rm.ReadAll();
+    rm.close();
+  } catch (err) { }
+  if (fso().FileExists(regfile)) fso().DeleteFile(regfile);
+
+  var ak=s.split("\n");
+  var vdesk, vrelx, vrely, vxres, vyres;
+  var mons=[];
+
+  for (var i = 0; i < ak.length; i++) {
+    var k=ak[i].trim().replace(/\s\s+/g, ' ').split(' ');
+
+    switch (k[0]) {
+      case "Attach.ToDesktop":
+        vdesk=parseInt(k[2], 16);
+        break;
+      case "DefaultSettings.XResolution":
+        vxres=parseInt(k[2], 16);
+        break;
+      case "DefaultSettings.YResolution":
+        vyres=parseInt(k[2], 16);
+        break;
+      case "Attach.RelativeX":
+        rx=parseInt(k[2], 16);
+        if (rx > 4294963200) rx-=4294963200;
+        vrelx=rx;
+        break;
+      case "Attach.RelativeY":
+        ry=parseInt(k[2], 16);
+        if (ry > 4294963200) ry-=4294963200;
+        vrely=ry;
+        mons.push({desk: vdesk, xres: vxres, yres: vyres, relx: vrelx, rely: vrely});
+        break;
+    }
+  }
+
+  return mons;
 }
 
+function disp_mon_info (eol) {
+  if (typeof eol === 'undefined') eol='<br>';
+
+  var mons=get_mon_info();
+  var s="";
+
+  if (mons.length > 1) s+="There are "+mons.length+" monitors";
+  else s+="There is one monitor";
+  s+=eol;
+
+  mons.forEach(function(m, i) {
+    s+="Monitor "+(i+1)+ " has a resolution of "+m.xres+"x"+m.yres+" pixels with relative X and Y attachment ("+m.relx+", "+m.rely+") and is ";
+    if (m.desk === 0) s+="NOT ";
+    s+="active."+eol;
+  });
+
+  return s;
+}
+
+mdiv.innerHTML=disp_mon_info();
