@@ -1,5 +1,4 @@
 
-#JAVA='/c/Program Files/Java/jdk-14.0.2/bin/java'
 JAVA='/c/Program Files (x86)/Common Files/Oracle/Java/javapath/java.exe'
 MINIFY=${JAVA} -jar ${HOME}/bin/yuicompressor-2.4.8.jar
 JSMINIFY=terser
@@ -8,13 +7,17 @@ HTMINIFY=html-minifier --collapse-whitespace --remove-comments --remove-optional
 # tidy check html
 # jshint check js
 
-TARGETS=bg_imgsel.min.css bg_imgsel_body.min.js bg_imgsel_head.min.js common.min.js bg_imgsel.min.hta
+TARGET=../bg_imgsel.hta
+COMPONENTS=app.min.css app_body.min.js app_head.min.js common.min.js app.min.hta
 
-BG_IMGSEL : $(TARGETS)
-	cp -f bg_imgsel.min.hta ../bg_imgsel.hta
-	cp -f bg_imgsel.ico ..
-	chmod 400 ../bg_imgsel.ico
-	chmod 400 ../bg_imgsel.hta
+
+all : ${TARGET}
+
+${TARGET} : ${COMPONENTS}
+	cp -f app.min.hta ${TARGET}
+	cp -f app.ico ..
+	chmod 400 ../app.ico
+	chmod 400 ${TARGET}
 
 
 check : clean
@@ -25,7 +28,7 @@ check : clean
 
 
 clean :
-	rm -f $(TARGETS)
+	rm -f $(COMPONENTS)
 		
 %.min.hta : %.pre.min.hta
 	$(HTMINIFY) $< | dos2unix > $@

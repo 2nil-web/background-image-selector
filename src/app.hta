@@ -4,9 +4,9 @@
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=9" />
       <title>Dismiss background images</title>
-      <link rel="stylesheet" href="bg_imgsel.css">
+      <link rel="stylesheet" href="app.css">
       <script type="text/javascript" src="common.js"></script>
-      <script type="text/javascript" src="bg_imgsel_head.js"></script>
+      <script type="text/javascript" src="app_head.js"></script>
       <!-- hta app ==> https://docs.microsoft.com/en-us/previous-versions/ms536495(v%3Dvs.85)-->
       <hta:application
          id="bg_imgsel"
@@ -14,7 +14,7 @@
          contextmenu="no"
          singleinstance="yes"
          scroll="no"
-         icon="bg_imgsel.ico"
+         icon="app.ico"
          />
    </head>
    <body>
@@ -27,32 +27,19 @@
               Reset to default size
             </button><br><br>
          </fieldset>
-         <center style="margin: 10px; 0px; 10px; 0px;">
-            <label for="thuBord" >
+         <div style="text-align: center; margin: 10px; 0px; 10px; 0px;">
             <input type="checkbox" id="thuBord">
-            Thumbnails have border
-            </label>
-
-            <label for="darkMode" style="margin-left:80px; " >
-            Dark mode
+            <label for="thuBord" >Thumbnails have border</label>
+            <label for="darkMode" style="margin-left:80px;">Dark mode</label>
             <input type="checkbox" id="darkMode">
-            </label>
-         </center>
+         </div>
 
-         <fieldset>
+         <fieldset style="text-align: center;" >
             <legend>How to make buttons appear</legend>
-            <center>
-            <label for="butsOnOver">
-              <input type="radio" id="butsOnOver" name="clickOrOver" checked >
-              On mouse over
-            </label>
-
-            <label for="butsOnClck" style="margin-left:30px;">
-              On mouse click
-              <input type="radio" id="butsOnClck" name="clickOrOver" ></input>
-            </label>
-
-            </center>
+            <input type="radio" id="butsOnOver" name="clickOrOver" checked>
+            <label for="butsOnOver">On mouse over</label>
+            <label for="butsOnClck" style="margin-left:30px;">On mouse click</label>
+            <input type="radio" id="butsOnClck" name="clickOrOver">
          </fieldset>
 
          <fieldset>
@@ -64,7 +51,7 @@
          <button onclick="okCnfDiv();"   style="width: 25%; margin-left: 15%;">Ok</button>
          <button onclick="closeCnfDiv();"style="width: 25%; margin-left: 20%;">Cancel</button>
       </div>
-      <script src="bg_imgsel_body.js"></script>
+      <script src="app_body.js"></script>
    </body>
 </html>
 
