@@ -31,8 +31,17 @@ function setWindowPos (start) {
   var ww=nThumb*img_width+padw;
   if (typeof screen !== "undefined" && ww > screen.width) ww=screen.width;
   var wh=60+Number(img_height);
-  if (typeof start !== 'undefined' && start && isHTA()) self.moveTo(winX, winY);
-  if (isHTA()) self.resizeTo(ww, wh);  
+
+  if (typeof start === 'undefined') start=false;
+
+  var me;
+  if (typeof self !== 'undefined') me=self;
+  else if (typeof window !== 'undefined') me=window;
+  else return;
+
+  if (start) me.moveTo(winX, winY);
+
+  me.resizeTo(ww, wh);  
 }
 
 setWindowPos(true);
@@ -41,9 +50,6 @@ setWindowPos(true);
 function onKeyUp(evt) {
   evt=evt || window.event;
   if (evt.keyCode === 27) window.close();
-}
-
-function noOnKeyUp(evt) {
 }
 
 function mkTemp () {
@@ -56,6 +62,7 @@ function mkTemp () {
 }
 
 function get_mon_info() {
+  return;
   var query='HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
 
   regfile=mkTemp();
@@ -66,7 +73,7 @@ function get_mon_info() {
     rm=fso().OpenTextFile(regfile, 1, true);
     s=rm.ReadAll();
     rm.close();
-  if (fso().FileExists(regfile)) fso().DeleteFile(regfile);
+    if (fso().FileExists(regfile)) fso().DeleteFile(regfile);
   } catch (err) { }
 
   var ak=s.split("\n");

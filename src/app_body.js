@@ -11,21 +11,21 @@ var zoom_factor=0.4;
 
 function zoom (factor) {
   try {
-  if (factor === 0) {
-    img_width=228;
-    img_height=128;
-//    writeLog("reset zoom w"+img_width+', '+img_height);
-  } else {
-    //img_width=Number(img_width); img_height=Number(img_height);
-    img_width=parseInt(img_width*(1+factor));
-    img_height=parseInt(img_height*(1+factor));
-  }
+    if (factor === 0) {
+      img_width=228;
+      img_height=128;
+    } else {
+      img_width=parseInt(img_width*(1+factor), 10);
+      img_height=parseInt(img_height*(1+factor), 10);
+    }
 
-  location.reload();
-  } catch (err) {}
+    location.reload();
+  } catch (err) { }
 }
 
-function onKeyupDiv(evt) {
+var itvbtl=-1, itvgan=-1, itvccd=-1;
+
+function onKeyUpDiv(evt) {
   evt=evt || window.event;
 //  writeLog("kc "+evt.keyCode);
 
@@ -34,7 +34,11 @@ function onKeyupDiv(evt) {
       okCnfDiv();
       break;
     case 27:
-      setTimeout(closeCnfDiv, 100);
+      if (itvccd != -1) {
+        clearTimeout(itvccd);
+        itvccd=-1;
+      }
+      itvccd=setTimeout(closeCnfDiv, 100);
       break;
   }
 }
@@ -44,12 +48,27 @@ function cnfDivNoResize () {
   if (isHTA()) window.resizeTo(noResizeW, noResizeH);
 }
 
+function mainWinUnref () {
+  if (itvbtl !== -1) clearInterval(itvbtl);
+  if (itvgan !== -1) clearTimeout(itvgan);
+  itvbtl=itvgan=-1;
+}
+
+function mainWinRef () {
+  // Rafraichissement des images au cinquième de seconde
+  if (itvbtl === -1) itvtbl=setInterval(BgThumbList, 800);
+  if (itvgan === -1) itvgan=setTimeout(getAllNodes, 200);
+}
+
 function closeCnfDiv() {
   cnfDiv.style.display='none';
   window.onresize=null;
   window.removeEventListener("resize", cnfDivNoResize);
   document.onkeyup=document.body.onkeyup=onKeyUp;
   setWindowPos();
+  if (itvccd != -1) clearTimeout(itvccd);
+  itvccd=-1;
+  mainWinRef();
 }
 
 function okCnfDiv() {
@@ -83,19 +102,19 @@ function showConfig () {
   darkMode.checked=isDarkMode;
   butsOnOver.checked=isButsOnOver;
   butsOnClck.checked=!isButsOnOver;
-  document.onkeyup=document.body.onkeyup=onKeyupDiv;
+  document.onkeyup=document.body.onkeyup=onKeyUpDiv;
   window.addEventListener("resize", cnfDivNoResize);
   cnfDiv.style.display='block';
+  mainWinUnref();
 }
-
 
 window.onload=function () {
   setDarkMode(isDarkMode);
   setButsOnOver(isButsOnOver);
-  document.onkeyup=document.body.onkeyup=onKeyUp;
-  // Rafraichissement des images au cinquième de seconde
-  setInterval(BgThumbList, 200);
-  setTimeout(getAllNodes, 200);
+
+  //document.onkeyup=document.body.onkeyup=onKeyUp;
+  document.onkeyup=onKeyUp;
+  mainWinRef();
 };
 
 function saveConfig () {

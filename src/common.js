@@ -192,7 +192,7 @@ function getVBScriptVersion() {
 
 // Return true if running in a HTML-Application else false
 function isHTA() {
-  return (getVBScriptVersion() != "" && typeof window.external === 'undefined');
+  return (getVBScriptVersion() != "" && typeof window !== 'undefined' && typeof window.external === 'undefined');
 }
 
 // Return true if IE else false
