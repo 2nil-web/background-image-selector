@@ -66,8 +66,8 @@ function get_mon_info() {
     rm=fso().OpenTextFile(regfile, 1, true);
     s=rm.ReadAll();
     rm.close();
-  } catch (err) { }
   if (fso().FileExists(regfile)) fso().DeleteFile(regfile);
+  } catch (err) { }
 
   var ak=s.split("\n");
   var vdesk, vrelx, vrely, vxres, vyres;
@@ -198,7 +198,7 @@ var im_buts=svg_button("cnfBut",  "left:  20px", "showConfig()",       "Configur
             svg_button("zoutBut", "left: 110px", "zoom(-zoom_factor)", "Zoom out",      zout_svg);
 
 
-var monits;
+var monits=get_mon_info();
 var curr_nmon=0;
 
 var update_done=false;
@@ -256,13 +256,19 @@ im_buts+
     var cm=imgn.getAttribute('data-monindex');
     var par=document.getElementById("mon"+cm);
 
-    if (monits[cm].desk === 0) {
-      par.style.display='none';
-      return 0;
+    if (idx === 0) {
+      par.style.display='';
+      return 1;
     }
 
-    par.style.display='';
-    return 1;
+    if (typeof monits !== 'undefined' && typeof monits[cm] !== 'undefined') {
+      if (monits[cm].desk === 1) {
+        par.style.display='';
+        return 1;
+      }
+    }
+
+    par.style.display='none';
   }
 
   return 0;
