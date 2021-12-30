@@ -24,7 +24,6 @@ check : clean
 	# make -i
 	jshint *.js
 	tidy *.hta
-	csstidy *.css
 
 
 clean :
@@ -38,7 +37,7 @@ clean :
 	./htwrap.sh $< | dos2unix > $@
 
 %.min.css : %.css
-	csstidy $<
+	csstidy $< >/dev/null 2>&1 || exit 1
 	$(MINIFY) $< | dos2unix > $@
 
 %.min.js : %.js

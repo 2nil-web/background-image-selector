@@ -1,4 +1,5 @@
-getAllNodes();
+
+//getAllNodes();
 //  <abbr title="Click me to access the configuration dialog">
 
 function setRejFolder () {
@@ -56,8 +57,8 @@ function mainWinUnref () {
 
 function mainWinRef () {
   // Rafraichissement des images au cinquième de seconde
-  if (itvbtl === -1) itvtbl=setInterval(BgThumbList, 800);
-  if (itvgan === -1) itvgan=setTimeout(getAllNodes, 200);
+  if (itvbtl === -1) itvtbl=setInterval(BgThumbList, 100);
+//  if (itvgan === -1) itvgan=setTimeout(getAllNodes, 100);
 }
 
 function closeCnfDiv() {

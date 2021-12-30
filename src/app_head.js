@@ -61,53 +61,72 @@ function mkTemp () {
   return tn;
 }
 
+var objReg=null;
+var objEnumKey=null;
+function regEnumKey (key, subKey) {
+  if (objReg === null) {
+    //var svc=GetObject("winmgmts:{impersonationLevel=impersonate}!\\\\.\\root\\default");
+    objReg=loc().ConnectServer(".", "root\\default").Get("StdRegProv");
+    // Prepare the EnumKey method...
+    objEnumKey=objReg.Methods_.Item("EnumKey"); 
+  }
+
+  var objParamsIn=objEnumKey.InParameters.SpawnInstance_(); 
+  objParamsIn.hDefKey=key; 
+  objParamsIn.sSubKeyName=subKey;
+  // Execute the method and collect the output...
+  var objParamsOut=objReg.ExecMethod_(objEnumKey.Name, objParamsIn); 
+
+  if (objParamsOut.ReturnValue === 0 && objParamsOut.sNames != null)
+    return objParamsOut.sNames.toArray();
+
+  return [];
+}
+
+// Retourne les infos de tous les moniteurs connecté dans un json
 function get_mon_info() {
-  return;
-  var query='HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
-
-  regfile=mkTemp();
-  wsh().Run('cmd /C reg query "'+query+'" /s >'+regfile, 0, true);
-
-  var s="";
-  try {
-    rm=fso().OpenTextFile(regfile, 1, true);
-    s=rm.ReadAll();
-    rm.close();
-    if (fso().FileExists(regfile)) fso().DeleteFile(regfile);
-  } catch (err) { }
-
-  var ak=s.split("\n");
-  var vdesk, vrelx, vrely, vxres, vyres;
+  var HKLM=0x080000002;
+  var monitorCount=0;
+  var path='SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
+  var videos=regEnumKey(HKLM, path);
   var mons=[];
 
-  for (var i = 0; i < ak.length; i++) {
-    var k=ak[i].trim().replace(/\s\s+/g, ' ').split(' ');
+  for (var i=0; i < videos.length; ++i) {
+    var subKeyVideo=path+'\\'+videos[i];
+    var arrSubVideo=regEnumKey(HKLM, subKeyVideo);
+    var msg='';
 
-    switch (k[0]) {
-      case "Attach.ToDesktop":
-        vdesk=parseInt(k[2], 16);
-        break;
-      case "DefaultSettings.XResolution":
-        vxres=parseInt(k[2], 16);
-        break;
-      case "DefaultSettings.YResolution":
-        vyres=parseInt(k[2], 16);
-        break;
-      case "Attach.RelativeX":
-        rx=parseInt(k[2], 16);
-        if (rx > 4294963200) rx-=4294963200;
-        vrelx=rx;
-        break;
-      case "Attach.RelativeY":
-        ry=parseInt(k[2], 16);
-        if (ry > 4294963200) ry-=4294963200;
-        vrely=ry;
-        mons.push({desk: vdesk, xres: vxres, yres: vyres, relx: vrelx, rely: vrely});
-        break;
+    for (var j=0; j < arrSubVideo.length; ++j) {
+      var newKey='HKLM\\'+subKeyVideo+'\\'+arrSubVideo[j];
+      var vdesk=wsh().RegRead(newKey+'\\Attach.ToDesktop');
+      var vxres=wsh().RegRead(newKey+'\\DefaultSettings.XResolution');
+      var vyres=wsh().RegRead(newKey+'\\DefaultSettings.YResolution');
+      var vrelx=wsh().RegRead(newKey+'\\Attach.RelativeX');
+      var vrely=wsh().RegRead(newKey+'\\Attach.RelativeY');
+      mons.push({desk: vdesk, xres: vxres, yres: vyres, relx: vrelx, rely: vrely});
     }
   }
 
   return mons;
+}
+
+function disp_mon_info (eol) {
+  if (typeof eol === 'undefined') eol='<br>';
+
+  var mons=get_mon_info();
+  var s="";
+
+  if (mons.length > 1) s+="There are "+mons.length+" monitors";
+  else s+="There is one monitor";
+  s+=eol;
+
+  mons.forEach(function(m, i) {
+    s+="Monitor "+(i+1)+ " has a resolution of "+m.xres+"x"+m.yres+" pixels with relative X and Y attachment ("+m.relx+", "+m.rely+") and is ";
+    if (m.desk === 0) s+="NOT ";
+    s+="active."+eol;
+  });
+
+  return s;
 }
 
 function BgRegExtract(regKey) {

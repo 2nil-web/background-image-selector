@@ -12,13 +12,15 @@
          id="bg_imgsel"
          applicationname="Background image selector"
          contextmenu="no"
+         border="dialog"
+         maximizebutton="no"
          singleinstance="yes"
          scroll="no"
          icon="app.ico"
          />
    </head>
    <body>
-      <div id='cnfDiv' >
+      <div id='cnfDiv'>
          <fieldset>
             <legend> Dimensions of the thumbnail display frame</legend>
             <input style="width: 40px;" id='thW' type="number" min="64" max="512" />pixels by 
@@ -50,8 +52,6 @@
          <br>
          <button onclick="okCnfDiv();"   style="width: 25%; margin-left: 15%;">Ok</button>
          <button onclick="closeCnfDiv();"style="width: 25%; margin-left: 20%;">Cancel</button>
-      </div>
-      <div id="log">
       </div>
       <script src="app_body.js"></script>
    </body>
