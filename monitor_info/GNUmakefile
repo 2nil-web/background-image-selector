@@ -5,8 +5,7 @@ OS=$(shell uname -s)
 CXXFLAGS += -Wall -Wextra -std=c++20 -pedantic
 #LDFLAGS += -static-libgcc -static-libstdc++
 LDFLAGS  += -static
-LDFLAGS  +=  -L $(WSDIR)/lib
-LDFLAGS  += -g -Os
+LDFLAGS  += -s -Os
 
 PREFIX=monitorsinfo
 SRCS=${PREFIX}.cpp
@@ -40,7 +39,7 @@ CXX=g++
 endif
 
 EXEXT=.exe
-LDFLAGS += -mwindows
+#LDFLAGS += -mwindows
 LDLIBS   +=  -lwsock32 -lws2_32 -luxtheme
 
 PGF=$(subst \,/,$(subst C:\,/c/,$(PROGRAMFILES)))
