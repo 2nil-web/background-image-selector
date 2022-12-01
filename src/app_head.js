@@ -87,7 +87,8 @@ function regEnumKey (key, subKey) {
 function get_mon_info() {
   var HKLM=0x080000002;
   var monitorCount=0;
-  var path='SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
+//  var path='SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
+  var path='SYSTEM\\CurrentControlSet\\Control\\UnitedVideo\\CONTROL\\VIDEO';
   var videos=regEnumKey(HKLM, path);
   var mons=[];
 
@@ -96,13 +97,20 @@ function get_mon_info() {
     var arrSubVideo=regEnumKey(HKLM, subKeyVideo);
     var msg='';
 
+    var vdesk, vxres, vyres, vrelx, vrely, newKey;
     for (var j=0; j < arrSubVideo.length; ++j) {
-      var newKey='HKLM\\'+subKeyVideo+'\\'+arrSubVideo[j];
-      var vdesk=wsh().RegRead(newKey+'\\Attach.ToDesktop');
-      var vxres=wsh().RegRead(newKey+'\\DefaultSettings.XResolution');
-      var vyres=wsh().RegRead(newKey+'\\DefaultSettings.YResolution');
-      var vrelx=wsh().RegRead(newKey+'\\Attach.RelativeX');
-      var vrely=wsh().RegRead(newKey+'\\Attach.RelativeY');
+      newKey='HKLM\\'+subKeyVideo+'\\'+arrSubVideo[j];
+      vdesk=wsh().RegRead(newKey+'\\Attach.ToDesktop');
+
+      if (vdesk === 1) {
+        vxres=wsh().RegRead(newKey+'\\DefaultSettings.XResolution');
+        vyres=wsh().RegRead(newKey+'\\DefaultSettings.YResolution');
+        vrelx=wsh().RegRead(newKey+'\\Attach.RelativeX');
+        vrely=wsh().RegRead(newKey+'\\Attach.RelativeY');
+      } else {
+        vxres=vyres=vrelx=vrely=-1;
+      }
+
       mons.push({desk: vdesk, xres: vxres, yres: vyres, relx: vrelx, rely: vrely});
     }
   }
@@ -152,36 +160,32 @@ function displayElement(butid, on) {
   }
 }
 
-function showButs () {
-  displayElement('cnfBut', true);
-  displayElement('zinBut', true);
-  displayElement('znoBut', true);
-  displayElement('zoutBut', true);
+function displayButs(val) {
+  displayElement('cnfBut', val);
+  displayElement('zinBut', val);
+  displayElement('znoBut', val);
+  displayElement('zoutBut', val);
 
   for (var i=0; i <= nThumb+10; i++) {
-    displayElement('rem_bg'+i, true);
-  }
-}
-
-function hideButs () {
-  displayElement('cnfBut', false);
-  displayElement('zinBut', false);
-  displayElement('znoBut', false);
-  displayElement('zoutBut', false);
-
-  for (var i=0; i <= nThumb+10; i++) {
-    displayElement('rem_bg'+i, false);
+    displayElement('inf_bg'+i, val);
+    displayElement('rem_bg'+i, val);
   }
 }
 
 var butsOn=false;
 function toggleButs () {
-  if (butsOn) {
-    hideButs();
-  } else {
-    showButs();
-  }
   butsOn=!butsOn;
+  displayButs(butsOn);
+}
+
+function showButs () {
+  butsOn=true;
+  displayButs(butsOn);
+}
+
+function hideButs () {
+  butsOn=false;
+  displayButs(butsOn);
 }
 
 function BgFileDelete (regKey, imgn, remn) {
@@ -255,8 +259,9 @@ im_buts+
 '<div id="mon'+curr_nmon+'" style="margin-left: 2px;'+border+' float: left; padding: 1px; width: '+divW+'px; height: '+img_height+'px; '+optDiv+'">'+
   '<center>'+
     '<img '+optMouse+' id="img_bg'+idx+'" style="max-width:'+ img_width +'px;max-height:'+img_height+'px; width:auto;height:auto;" src="" ondragstart="return false;">'+
+    '<div id="inf_bg'+idx+'" style="position:relative; top: -80px; display:none">Image for screen '+(idx+1)+' \''+bgPath.basename()+'\'</div>'+
       '<center>'+
-        svg_button('rem_bg'+idx, "position:relative; top: -35px;", "", 'Dismiss this image (\''+bgPath.basename()+'\').', del_svg)+
+        svg_button('rem_bg'+idx, "position:relative; top: -65px;", "", 'Dismiss this image (\''+bgPath.basename()+'\').', del_svg)+
       '</center>'+
     '</img></center><br>'+
 '</div>';

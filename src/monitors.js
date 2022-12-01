@@ -35,10 +35,15 @@ function regEnumKey (key, subKey) {
   return [];
 }
 
+function trace(msg) {
+  trc.innerHTML+=msg+"<br>";
+}
+
 function get_mon_info() {
   var HKLM=0x080000002;
   var monitorCount=0;
-  var path='SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
+  //var path='SYSTEM\\CurrentControlSet\\Hardware Profiles\\UnitedVideo\\CONTROL\\VIDEO';
+  var path='SYSTEM\\CurrentControlSet\\Control\\UnitedVideo\\CONTROL\\VIDEO';
   var videos=regEnumKey(HKLM, path);
   var mons=[];
 
@@ -47,19 +52,27 @@ function get_mon_info() {
     var arrSubVideo=regEnumKey(HKLM, subKeyVideo);
     var msg='';
 
+    var vdesk, vxres, vyres, vrelx, vrely, newKey;
     for (var j=0; j < arrSubVideo.length; ++j) {
-      var newKey='HKLM\\'+subKeyVideo+'\\'+arrSubVideo[j];
-      var vdesk=wsh().RegRead(newKey+'\\Attach.ToDesktop');
-      var vxres=wsh().RegRead(newKey+'\\DefaultSettings.XResolution');
-      var vyres=wsh().RegRead(newKey+'\\DefaultSettings.YResolution');
-      var vrelx=wsh().RegRead(newKey+'\\Attach.RelativeX');
-      var vrely=wsh().RegRead(newKey+'\\Attach.RelativeY');
+      newKey='HKLM\\'+subKeyVideo+'\\'+arrSubVideo[j];
+      vdesk=wsh().RegRead(newKey+'\\Attach.ToDesktop');
+
+      if (vdesk === 1) {
+        vxres=wsh().RegRead(newKey+'\\DefaultSettings.XResolution');
+        vyres=wsh().RegRead(newKey+'\\DefaultSettings.YResolution');
+        vrelx=wsh().RegRead(newKey+'\\Attach.RelativeX');
+        vrely=wsh().RegRead(newKey+'\\Attach.RelativeY');
+      } else {
+        vxres=vyres=vrelx=vrely=-1;
+      }
+
       mons.push({desk: vdesk, xres: vxres, yres: vyres, relx: vrelx, rely: vrely});
     }
   }
 
   return mons;
 }
+
 
 function disp_mon_info (eol) {
   if (typeof eol === 'undefined') eol='<br>';
@@ -72,14 +85,32 @@ function disp_mon_info (eol) {
   s+=eol;
 
   mons.forEach(function(m, i) {
-    s+="Monitor "+(i+1)+ " has a resolution of "+m.xres+"x"+m.yres+" pixels with relative X and Y attachment ("+m.relx+", "+m.rely+") and is ";
-    if (m.desk === 0) s+="NOT ";
-    s+="active."+eol;
+    s+="Monitor "+(i+1);
+    if (m.desk !== 0) {
+      s+=" has a resolution of "+m.xres+"x"+m.yres+" pixels with relative X and Y attachment ("+m.relx+", "+m.rely+") and is active.";
+    } else {
+      s+=" is NOT active.";
+    }
+    s+=eol;
   });
 
   return s;
 }
 
+function get_n_active_mon () {
+  var n=0;
+  var mons=get_mon_info();
+  mons.forEach(function(m, i) {
+    if (m.desk) n++;
+  });
+
+  return n;
+}
+
 mdiv.innerHTML=disp_mon_info();
 
+nm=get_n_active_mon();
+
+if (nm > 1) mdiv.innerHTML+="<br>Il y a donc "+nm+" moniteurss actifs.";
+else mdiv.innerHTML+="<br>Il y a donc "+nm+" moniteurs actif.";
 
