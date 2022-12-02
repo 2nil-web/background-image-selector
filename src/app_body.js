@@ -8,20 +8,23 @@ function setRejFolder () {
   if (folder !== null) rejFld.value=folder.Self.Path;
 }
 
-var zoom_factor=0.4;
+var zoom_factor=0.2;
 
 function zoom (factor) {
+  if (img_width*(1+factor) > 140 && img_height*(1+factor) > 80) {
   try {
     if (factor === 0) {
-      img_width=228;
-      img_height=128;
+      img_width=320;
+      img_height=180;
     } else {
       img_width=parseInt(img_width*(1+factor), 10);
       img_height=parseInt(img_height*(1+factor), 10);
     }
 
+
     location.reload();
   } catch (err) { }
+  }
 }
 
 var itvbtl=-1, itvgan=-1, itvccd=-1;

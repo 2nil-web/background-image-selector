@@ -75,10 +75,9 @@ deliv : setup
 	@$(call deliv,${VERS},PRERELEASE)
 
 ${TARGET} : ${COMPONENTS}
-	@echo ${COMPONENTS}
-#	@cp -f ${COMPONENTS} ..
 	@mv app.min.hta ${TARGET}
 	@mv app.nomin.hta ${TARGET:hta=debug.hta}
+	@cp app.ico ..
 
 app.min.hta : app.hta app.css app_body.js app_head.js
 
